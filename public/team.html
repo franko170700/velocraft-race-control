@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VeloCraft Race Control — Team</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">VeloCraft</div>
+      <div class="sub">Race&nbsp;Control</div>
+    </div>
+    <div class="spacer"></div>
+    <a class="navlink" href="/board" target="_blank">Leaderboard</a>
+    <button class="icon-toggle" id="themeBtn" title="Toggle light/dark">◐</button>
+  </div>
+
+  <div class="wrap">
+    <!-- LOGIN -->
+    <div id="login" class="card">
+      <h2 style="font-family:var(--disp);font-size:30px;margin:0 0 4px;">Sign on to the race</h2>
+      <p class="muted" style="margin-top:0;">Pick your team, then enter your 4-character team code from the facilitator.</p>
+      <div id="teamPicks" class="login-grid"></div>
+      <div class="answer-row" style="margin-top:16px;max-width:360px;">
+        <input type="text" id="codeInput" maxlength="4" placeholder="TEAM CODE" style="text-transform:uppercase;letter-spacing:3px;font-family:var(--disp);font-size:20px;" />
+        <button class="btn" id="joinBtn">Join</button>
+      </div>
+      <div id="loginMsg" class="feedback no"></div>
+    </div>
+
+    <!-- GAME -->
+    <div id="game" class="hidden">
+      <div class="card">
+        <div class="statstrip">
+          <div class="stat"><div class="n" id="sPoints">0</div><div class="l">Points</div></div>
+          <div class="stat"><div class="n" id="sRank">–</div><div class="l">Position</div></div>
+          <div class="stat"><div class="n" id="sSolved">0</div><div class="l">Stages solved</div></div>
+          <div class="stat"><div class="n" id="sHints">3</div><div class="l">Hint tokens</div></div>
+          <div class="spacer" style="flex:1"></div>
+          <div class="stat" style="text-align:right;"><div class="n clock" id="sClock">--:--</div><div class="l" id="sClockState">Not started</div></div>
+          <div class="stat" style="background:transparent;border:none;">
+            <div class="rowflex"><span class="team-dot" id="meDot"></span><strong id="meName"></strong></div>
+            <button class="btn ghost sm" id="logoutBtn" style="margin-top:6px;">Switch team</button>
+          </div>
+        </div>
+      </div>
+
+      <details class="brief">
+        <summary>📋 Your brief — welcome to VeloCraft AG</summary>
+        <div class="muted">
+          <p><strong>VeloCraft AG</strong> is a premium bicycle manufacturer in Munich, founded in 1998. We build road bikes (the <strong>RX</strong> series), mountain bikes (<strong>MX</strong>) and — since 18 months ago — e-bikes (the <strong>EX</strong> series).</p>
+          <p>We've just gone live on <strong>SAP S/4HANA Cloud Public Edition</strong>, and work is piling up across Finance, Order Management, Sourcing &amp; Purchasing and Supply Chain. You've just been hired as a <strong>junior SAP consultant</strong>. Each stage below is a real task from a VeloCraft colleague — complete it in the SAP S/4HANA trial, find the answer in the system, and log it here to score.</p>
+        </div>
+      </details>
+
+      <div id="missions"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="/js/team.js"></script>
+</body>
+</html>

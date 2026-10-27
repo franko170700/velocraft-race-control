@@ -1,0 +1,19 @@
+{
+  "name": "velocraft-race-control",
+  "version": "1.0.0",
+  "description": "Live gamified scoreboard for an SAP S/4HANA Public Cloud training session (cycling race theme).",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.2.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2"
+  }
+}

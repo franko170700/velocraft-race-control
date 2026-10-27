@@ -1,0 +1,21 @@
+# VeloCraft Race Control — Requirements
+#
+# NOTE: This is a Node.js project, not a Python one. The authoritative
+# dependency manifest is package.json, and dependencies are installed with:
+#
+#     npm install
+#
+# This file is a human-readable summary of what the app needs to run.
+
+# ---- Runtime ----
+Node.js >= 20            # tested on Node 24 LTS
+npm (ships with Node)
+
+# ---- npm packages (installed by `npm install`, see package.json) ----
+better-sqlite3 >= 12.2.0   # embedded SQLite database (synchronous, WAL mode)
+express >= 4.21.2          # web server / HTTP routing
+dotenv >= 16.4.5           # loads ADMIN_PASSWORD and PORT from .env
+
+# ---- Configuration (create a .env file; see .env.example) ----
+ADMIN_PASSWORD   # facilitator login + /api/host/* auth
+PORT             # port to listen on (default 3000; host platforms override)

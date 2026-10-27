@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VeloCraft — Facilitator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand"><div class="logo">VeloCraft</div><div class="sub">Facilitator</div></div>
+    <div class="spacer"></div>
+    <a class="navlink" href="/" target="_blank">Team view</a>
+    <a class="navlink" href="/board" target="_blank">Leaderboard</a>
+    <button class="icon-toggle" id="themeBtn" title="Toggle light/dark">◐</button>
+  </div>
+
+  <div class="wrap">
+    <!-- LOGIN -->
+    <div id="login" class="card" style="max-width:420px;">
+      <h2 style="font-family:var(--disp);font-size:28px;margin:0 0 8px;">Facilitator sign-in</h2>
+      <label class="fld">Admin password</label>
+      <div class="answer-row">
+        <input type="password" id="pw" placeholder="Password" />
+        <button class="btn" id="loginBtn">Enter</button>
+      </div>
+      <div class="feedback no" id="loginMsg"></div>
+    </div>
+
+    <!-- CONSOLE -->
+    <div id="console" class="hidden">
+      <!-- CLOCK -->
+      <div class="card">
+        <h2 style="font-family:var(--disp);font-size:24px;margin:0 0 10px;">⏱ Race clock</h2>
+        <div class="rowflex">
+          <div class="stat"><div class="n clock" id="hClock">--:--</div><div class="l" id="hState">Idle</div></div>
+          <label class="fld" style="margin:0 0 0 10px;">Length (min)</label>
+          <input type="number" id="lenMin" value="60" min="1" style="width:90px;" />
+          <button class="btn ghost sm" id="setLen">Set</button>
+          <button class="btn sm" id="startBtn">▶ Start</button>
+          <button class="btn ghost sm" id="add5Btn">+5 min</button>
+          <button class="btn danger sm" id="endBtn">■ End now</button>
+          <button class="btn ghost sm" id="resetBtn">↺ Reset scores</button>
+          <span id="plannedMin" class="muted"></span>
+        </div>
+      </div>
+
+      <div class="host-grid">
+        <!-- MISSIONS -->
+        <div class="card">
+          <div class="rowflex" style="justify-content:space-between;">
+            <h2 style="font-family:var(--disp);font-size:24px;margin:0;">🗺 Stages</h2>
+            <button class="btn sm" id="addMission">+ Add stage</button>
+          </div>
+          <p class="muted" style="margin:6px 0 10px;">Stages without accepted answers are <strong>drafts</strong> (hidden from teams).</p>
+          <table id="missionTable"><tbody></tbody></table>
+        </div>
+
+        <!-- TEAMS -->
+        <div class="card">
+          <div class="rowflex" style="justify-content:space-between;">
+            <h2 style="font-family:var(--disp);font-size:24px;margin:0;">🚴 Teams</h2>
+            <button class="btn sm" id="addTeam">+ Add team</button>
+          </div>
+          <table id="teamTable"><tbody></tbody></table>
+        </div>
+      </div>
+
+      <!-- HINTS -->
+      <div class="card">
+        <h2 style="font-family:var(--disp);font-size:24px;margin:0 0 6px;">💡 Hints grid</h2>
+        <p class="muted" style="margin:0 0 10px;">Amber = hint requested. Click a cell to unlock (green) or re-lock.</p>
+        <div style="overflow:auto;"><table id="hintGrid"></table></div>
+      </div>
+
+      <!-- MANUAL -->
+      <div class="card">
+        <h2 style="font-family:var(--disp);font-size:24px;margin:0 0 8px;">✍ Manual entry</h2>
+        <div class="rowflex">
+          <select id="mTeam" style="width:200px;"></select>
+          <select id="mMission" style="width:240px;"></select>
+          <input type="text" id="mAnswer" placeholder="Answer to record" style="flex:1;min-width:180px;" />
+          <button class="btn" id="mSubmit">Record</button>
+          <span id="mMsg"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mission editor dialog -->
+  <dialog id="missionDlg" style="border:none;border-radius:14px;max-width:640px;width:92%;padding:0;">
+    <form method="dialog" style="padding:20px;">
+      <h3 id="dlgTitle" style="font-family:var(--disp);font-size:24px;margin:0 0 6px;">Stage</h3>
+      <div class="host-grid">
+        <div><label class="fld">Title</label><input type="text" id="f_title" /></div>
+        <div><label class="fld">Area</label>
+          <select id="f_area"><option>Finance</option><option>Order Management</option><option>Sourcing &amp; Purchasing</option><option>Supply Chain</option></select>
+        </div>
+      </div>
+      <div class="host-grid">
+        <div><label class="fld">Difficulty</label>
+          <select id="f_difficulty"><option>Easy</option><option>Medium</option><option>Hard</option></select></div>
+        <div><label class="fld">Points</label><input type="number" id="f_points" min="0" /></div>
+      </div>
+      <div class="host-grid">
+        <div><label class="fld">Est. minutes</label><input type="number" id="f_minutes" min="0" /></div>
+        <div><label class="fld">Guided tour name</label><input type="text" id="f_tour" /></div>
+      </div>
+      <label class="fld">Scenario</label><textarea id="f_scenario"></textarea>
+      <label class="fld">Task</label><textarea id="f_task"></textarea>
+      <label class="fld">Verification question</label><textarea id="f_question"></textarea>
+      <label class="fld">Hint</label><textarea id="f_hint"></textarea>
+      <label class="fld">Accepted answers (separate several with | )</label><input type="text" id="f_answers" placeholder="Century Cycles|Century-Cycles" />
+      <div class="rowflex" style="justify-content:flex-end;margin-top:16px;">
+        <button class="btn danger sm" id="dlgDelete" value="delete" formnovalidate>Delete</button>
+        <span class="spacer" style="flex:1"></span>
+        <button class="btn ghost sm" value="cancel">Cancel</button>
+        <button class="btn sm" id="dlgSave" value="save">Save stage</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast"></div>
+  <script src="/js/host.js"></script>
+</body>
+</html>
