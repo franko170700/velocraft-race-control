@@ -10,9 +10,9 @@ Everything updates **live** via Server-Sent Events — no page refreshes, no bui
 
 | View | URL | Who | What |
 |------|-----|-----|------|
-| **Team** | `/` | Each team's laptop | Pick team + code, read the brief, solve stages, request hints |
+| **Team** | `/` | Each team's laptop | Pick team + code, solve stages |
 | **Leaderboard** | `/board` | Projector | General classification + "Race Radio" solve feed. Auto-updates. |
-| **Facilitator** | `/host` | You (password) | Clock, stage CRUD + reorder, team CRUD, hint grid, manual entry |
+| **Facilitator** | `/host` | You (password) | Clock, stage CRUD + reorder, team CRUD, manual entry |
 
 ---
 
@@ -48,25 +48,22 @@ The SQLite database is created automatically at `data/race.db` on first run and 
 
 1. Open **`/host`** and log in.
 2. **Set the clock** length (default 60 min) and leave it idle until you're ready.
-3. **Build your stages.** A stage is a *draft* (hidden from teams) until it has at least one accepted answer. Add the answer(s) in the stage editor — separate alternatives with `|` (e.g. `Century Cycles|Century-Cycles`). Answers are matched case-, accent- and punctuation-insensitively.
-4. Reorder stages with ↑/↓. The planned-minutes total shows against the ~60 min target.
+3. **Build your stages.** New stages start **hidden**. Add the accepted answer(s) in the stage editor — separate alternatives with `|` (e.g. `Century Cycles|Century-Cycles`). Answers are matched case-, accent- and punctuation-insensitively.
+4. Reorder stages with ↑/↓. The planned-minutes total (of published stages) shows against the ~60 min target.
 5. Share each team's **name + 4-character code** (shown in the Teams table) with that table of trainees.
 6. Put **`/board`** on the projector.
-7. Hit **▶ Start**. Questions unlock on every team view the instant the race starts.
-8. Watch hints come in on the **hint grid** — click a cell to unlock (🔓) or re-lock.
-9. Use **+5 min** if they need more time, **■ End now** to stop early. No points are awarded after the clock ends.
-10. **↺ Reset scores** wipes all solves/attempts/hints for a fresh run (teams and stages stay).
+7. Hit **▶ Start**. The clock counts down and published stages become answerable.
+8. **Release stages one at a time** by clicking **Publish** on a stage (click **Hide** to pull it back). Teams only ever see published stages. Use **+5 min** for more time, **■ End now** to stop early. No points are awarded after the clock ends.
+9. **↺ Reset scores** wipes all solves/attempts for a fresh run (teams and stages stay).
 
 ### Scoring
 
 | Rule | Points |
 |------|--------|
 | Easy / Medium / Hard stage (base, editable per stage) | 5 / 10 / 15 |
-| Solved without using a hint | +5 |
 | First team to solve a given stage | +3 |
-| First team to solve **every** live stage | +10 |
 
-Hint tokens: 3 per team by default. Ties broken by stages solved, then earliest last-solve time.
+Ties broken by stages solved, then earliest last-solve time.
 
 ---
 

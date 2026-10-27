@@ -3,7 +3,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const fmtClock = (sec) => { sec = Math.max(0, sec | 0); const m = Math.floor(sec / 60), s = sec % 60; return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; };
-const areaClass = (a) => ({ 'Finance': 'Finance', 'Order Management': 'Order', 'Sourcing & Purchasing': 'Sourcing', 'Supply Chain': 'Supply' }[a] || 'area');
+const areaClass = (a) => ({ 'Sales': 'Sales', 'Finance': 'Finance', 'Order Management': 'Order', 'Sourcing & Purchasing': 'Sourcing', 'Supply Chain': 'Supply' }[a] || 'area');
 
 // ---- theme ----
 const themeBtn = $('#themeBtn');
@@ -66,12 +66,11 @@ function render(view) {
   $('#sPoints').textContent = view.points;
   $('#sRank').textContent = view.rank ? `${view.rank}/${view.totalTeams}` : '–';
   $('#sSolved').textContent = view.solved;
-  $('#sHints').textContent = view.team.hintTokens;
   session.color = view.team.color; $('#meDot').style.background = view.team.color;
   paintClock();
 
   $('#missions').innerHTML = view.missions.map((m, i) => missionCard(m, i + 1)).join('') ||
-    '<div class="card muted">No live stages yet — the facilitator is still setting up.</div>';
+    '<div class="card muted">No stages released yet — the facilitator will publish them as the race goes on.</div>';
 
   view.missions.forEach((m) => wireCard(m));
 }
@@ -85,21 +84,13 @@ function missionCard(m, no) {
   } else {
     qinner = `<div class="section-label">Verification question</div><div style="font-weight:600;margin:4px 0;">${esc(m.question)}</div>`;
     if (solved) {
-      qinner += `<div class="solved-banner">✅ Solved — ${m.earnedPoints} pts${m.solvedWithHint ? ' (hint used)' : ''}</div>`;
+      qinner += `<div class="solved-banner">✅ Solved — ${m.earnedPoints} pts</div>`;
     } else {
       qinner += `<div class="answer-row">
           <input type="text" id="ans-${m.id}" placeholder="Type the answer you found in SAP…" ${clockLocal.state === 'running' ? '' : 'disabled'} />
           <button class="btn" data-submit="${m.id}" ${canAnswer ? '' : 'disabled'}>Submit</button>
         </div>
         <div class="feedback" id="fb-${m.id}">${m.wrongTries > 0 ? `${m.wrongTries} wrong ${m.wrongTries === 1 ? 'try' : 'tries'} so far.` : ''}</div>`;
-      // hint
-      if (m.hintUnlocked && m.hintText) {
-        qinner += `<div class="hint-text">💡 ${esc(m.hintText)}</div>`;
-      } else if (m.hintRequested) {
-        qinner += `<div class="hintline muted">💡 Hint requested — waiting for the facilitator to unlock it.</div>`;
-      } else {
-        qinner += `<div class="hintline"><button class="btn ghost sm" data-hint="${m.id}">💡 Request hint (costs 1 token)</button></div>`;
-      }
     }
   }
   return `<div class="card mission ${solved ? 'solved' : ''}">
@@ -117,8 +108,8 @@ function missionCard(m, no) {
     <div class="section-label">Guided tour to follow</div>
     <div class="tour">${esc(m.tour) || '—'}</div>
     <div class="section-label">Scenario</div>
-    <div>${esc(m.scenario)}</div>
-    ${m.task ? `<div class="section-label">Your task</div><div>${esc(m.task)}</div>` : ''}
+    <div class="mtext">${esc(m.scenario)}</div>
+    ${m.task ? `<div class="section-label">Your task</div><div class="mtext">${esc(m.task)}</div>` : ''}
     <div class="qbox">${qinner}</div>
   </div>`;
 }
@@ -128,8 +119,6 @@ function wireCard(m) {
   if (sb) sb.onclick = () => submit(m.id);
   const inp = $(`#ans-${m.id}`);
   if (inp) inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(m.id); });
-  const hb = $(`[data-hint="${m.id}"]`);
-  if (hb) hb.onclick = () => requestHint(m.id);
 }
 
 async function submit(missionId) {
@@ -142,7 +131,7 @@ async function submit(missionId) {
   if (!res.ok) { fb.className = 'feedback no'; fb.textContent = data.error || 'Error.'; return; }
   if (data.correct) {
     fb.className = 'feedback ok';
-    fb.textContent = data.note ? data.note : `✅ Correct! +${data.points} pts${data.firstSolve ? ' · first to solve!' : ''}${data.firstAll ? ' · +10 all stages!' : ''}`;
+    fb.textContent = data.note ? data.note : `✅ Correct! +${data.points} pts${data.firstSolve ? ' · first to solve!' : ''}`;
     if (!data.note || data.points) toast(`Correct! +${data.points} pts`);
     refresh();
   } else {
@@ -150,14 +139,6 @@ async function submit(missionId) {
     fb.textContent = `❌ Not quite — ${data.wrongTries} wrong ${data.wrongTries === 1 ? 'try' : 'tries'} so far.`;
     inp.select();
   }
-}
-
-async function requestHint(missionId) {
-  const res = await fetch('/api/hint/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ teamId: session.id, code: session.code, missionId }) });
-  const data = await res.json();
-  if (!res.ok) return toast(data.error || 'Could not request hint.');
-  toast('Hint requested.');
-  refresh();
 }
 
 async function refresh() {

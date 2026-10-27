@@ -33,7 +33,7 @@ async function refresh() {
     ? data.radio.map((r) => `<div class="radio-item">
         <span class="tag" style="color:${esc(r.color)}">${esc(r.team)}</span> solved <strong>${esc(r.mission)}</strong>
         ${r.first ? '<span class="first">First!</span>' : ''}
-        <div class="muted" style="font-size:12px;">+${r.points} pts · ${ago(r.at)}${r.usedHint ? ' · hint used' : ''}</div>
+        <div class="muted" style="font-size:12px;">+${r.points} pts · ${ago(r.at)}</div>
       </div>`).join('')
     : '<div class="radio-empty">No solves yet — waiting for the first rider to attack.</div>';
 }

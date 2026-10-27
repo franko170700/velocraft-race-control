@@ -14,10 +14,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 const DIFF_POINTS = { Easy: 5, Medium: 10, Hard: 15 };
-const NO_HINT_BONUS = 5;
 const FIRST_SOLVE_BONUS = 3;
-const FIRST_ALL_BONUS = 10;
-const HINT_TOKENS_DEFAULT = 3;
 const SUBMIT_COOLDOWN_MS = 3000;
 
 // ---------------------------------------------------------------- SSE plumbing
@@ -74,17 +71,13 @@ function raceRunning() { maybeAutoEnd(); return getSetting('race_state', 'idle')
 // ---------------------------------------------------------------- scoring
 const liveMissionsStmt = db.prepare('SELECT * FROM missions ORDER BY ord, id');
 function liveMissions() { return liveMissionsStmt.all().filter(missionIsLive); }
-
-function teamBonus(teamId) {
-  const row = db.prepare("SELECT 1 FROM bonuses WHERE key = 'first_all' AND team_id = ?").get(teamId);
-  return row ? FIRST_ALL_BONUS : 0;
-}
+function publishedMissions() { return liveMissionsStmt.all().filter((m) => m.published); }
 
 function teamScore(teamId) {
   const agg = db
     .prepare('SELECT COALESCE(SUM(points),0) AS pts, COUNT(*) AS solved, MAX(solved_at) AS last FROM solves WHERE team_id = ?')
     .get(teamId);
-  return { points: agg.pts + teamBonus(teamId), solved: agg.solved, lastSolveAt: agg.last || null };
+  return { points: agg.pts, solved: agg.solved, lastSolveAt: agg.last || null };
 }
 
 function standings() {
@@ -108,35 +101,17 @@ const awardSolve = db.transaction((team, mission, atTime) => {
   const existing = db.prepare('SELECT 1 FROM solves WHERE team_id = ? AND mission_id = ?').get(team.id, mission.id);
   if (existing) return { ok: false, reason: 'already-solved' };
 
-  const hintRow = db.prepare('SELECT requested FROM hints WHERE team_id = ? AND mission_id = ?').get(team.id, mission.id);
-  const usedHint = hintRow && hintRow.requested ? 1 : 0;
-
   const priorSolvers = db.prepare('SELECT COUNT(*) AS n FROM solves WHERE mission_id = ?').get(mission.id).n;
   const isFirst = priorSolvers === 0 ? 1 : 0;
 
   const base = mission.points || DIFF_POINTS[mission.difficulty] || 0;
   let points = base;
-  if (!usedHint) points += NO_HINT_BONUS;
   if (isFirst) points += FIRST_SOLVE_BONUS;
 
-  db.prepare('INSERT INTO solves (team_id, mission_id, points, used_hint, is_first, solved_at) VALUES (?, ?, ?, ?, ?, ?)')
-    .run(team.id, mission.id, points, usedHint, isFirst, atTime);
+  db.prepare('INSERT INTO solves (team_id, mission_id, points, used_hint, is_first, solved_at) VALUES (?, ?, ?, 0, ?, ?)')
+    .run(team.id, mission.id, points, isFirst, atTime);
 
-  let firstAll = false;
-  const live = liveMissions();
-  if (live.length > 0) {
-    const solvedCount = db
-      .prepare(`SELECT COUNT(*) AS n FROM solves WHERE team_id = ? AND mission_id IN (${live.map(() => '?').join(',')})`)
-      .get(team.id, ...live.map((m) => m.id)).n;
-    if (solvedCount === live.length) {
-      const already = db.prepare("SELECT 1 FROM bonuses WHERE key = 'first_all'").get();
-      if (!already) {
-        db.prepare("INSERT INTO bonuses (key, team_id, awarded_at) VALUES ('first_all', ?, ?)").run(team.id, atTime);
-        firstAll = true;
-      }
-    }
-  }
-  return { ok: true, points, firstSolve: isFirst === 1, firstAll, usedHint: usedHint === 1 };
+  return { ok: true, points, firstSolve: isFirst === 1 };
 });
 
 // ---------------------------------------------------------------- helpers
@@ -182,7 +157,7 @@ app.get('/api/state', (req, res) => {
   maybeAutoEnd();
   res.json({
     clock: clockState(),
-    missions: liveMissions().map(publicMission),
+    missions: publishedMissions().map(publicMission),
     teams: db.prepare('SELECT id, name, color FROM teams ORDER BY name').all(),
   });
 });
@@ -199,7 +174,7 @@ app.get('/api/team/:id/view', (req, res) => {
   if (!team) return res.status(401).json({ error: 'Wrong team code.' });
   maybeAutoEnd();
 
-  const missions = liveMissions();
+  const missions = publishedMissions();
   const score = teamScore(team.id);
   const all = standings();
   const myStanding = all.find((s) => s.id === team.id);
@@ -207,18 +182,14 @@ app.get('/api/team/:id/view', (req, res) => {
   const perMission = missions.map((m) => {
     const solve = db.prepare('SELECT * FROM solves WHERE team_id = ? AND mission_id = ?').get(team.id, m.id);
     const tries = db.prepare('SELECT COUNT(*) AS n FROM attempts WHERE team_id = ? AND mission_id = ? AND correct = 0').get(team.id, m.id).n;
-    const hint = db.prepare('SELECT requested, unlocked FROM hints WHERE team_id = ? AND mission_id = ?').get(team.id, m.id) || { requested: 0, unlocked: 0 };
     return {
       ...publicMission(m),
-      solved: !!solve, earnedPoints: solve ? solve.points : 0,
-      solvedWithHint: solve ? !!solve.used_hint : false, wrongTries: tries,
-      hintRequested: !!hint.requested, hintUnlocked: !!hint.unlocked,
-      hintText: hint.unlocked ? m.hint : null,
+      solved: !!solve, earnedPoints: solve ? solve.points : 0, wrongTries: tries,
     };
   });
 
   res.json({
-    team: { id: team.id, name: team.name, color: team.color, hintTokens: team.hint_tokens },
+    team: { id: team.id, name: team.name, color: team.color },
     clock: clockState(), points: score.points, solved: score.solved,
     rank: myStanding ? myStanding.rank : null, totalTeams: all.length, missions: perMission,
   });
@@ -238,7 +209,7 @@ app.post('/api/submit', (req, res) => {
   lastSubmit.set(team.id, now);
 
   const mission = db.prepare('SELECT * FROM missions WHERE id = ?').get(missionId);
-  if (!mission || !missionIsLive(mission)) return res.status(404).json({ error: 'Mission not found.' });
+  if (!mission || !mission.published) return res.status(404).json({ error: 'Mission not found.' });
   if (!raceStarted()) return res.status(403).json({ error: 'The race has not started yet.' });
 
   if (db.prepare('SELECT 1 FROM solves WHERE team_id = ? AND mission_id = ?').get(team.id, mission.id)) {
@@ -263,38 +234,17 @@ app.post('/api/submit', (req, res) => {
 
   const result = awardSolve(team, mission, now);
   broadcast('update', { reason: 'solve', teamName: team.name, missionTitle: mission.title, firstSolve: result.firstSolve });
-  res.json({ correct: true, points: result.points, firstSolve: result.firstSolve, firstAll: result.firstAll });
-});
-
-app.post('/api/hint/request', (req, res) => {
-  const { teamId, code, missionId } = req.body || {};
-  const team = verifyTeam(teamId, code);
-  if (!team) return res.status(401).json({ error: 'Wrong team code.' });
-  const mission = db.prepare('SELECT * FROM missions WHERE id = ?').get(missionId);
-  if (!mission || !missionIsLive(mission)) return res.status(404).json({ error: 'Mission not found.' });
-
-  const existing = db.prepare('SELECT * FROM hints WHERE team_id = ? AND mission_id = ?').get(team.id, mission.id);
-  if (existing && existing.requested) return res.json({ ok: true, alreadyRequested: true, unlocked: !!existing.unlocked });
-  if (team.hint_tokens <= 0) return res.status(400).json({ error: 'No hint tokens left.' });
-
-  db.transaction(() => {
-    db.prepare('UPDATE teams SET hint_tokens = hint_tokens - 1 WHERE id = ?').run(team.id);
-    db.prepare(`INSERT INTO hints (team_id, mission_id, requested, unlocked, requested_at) VALUES (?, ?, 1, 0, ?)
-                ON CONFLICT(team_id, mission_id) DO UPDATE SET requested = 1, requested_at = excluded.requested_at`)
-      .run(team.id, mission.id, Date.now());
-  })();
-  broadcast('update', { reason: 'hint-request' });
-  res.json({ ok: true, tokensLeft: team.hint_tokens - 1 });
+  res.json({ correct: true, points: result.points, firstSolve: result.firstSolve });
 });
 
 // ================================================================ BOARD API
 app.get('/api/board', (req, res) => {
   maybeAutoEnd();
-  const missions = liveMissions();
+  const missions = publishedMissions();
   const rows = standings().map((t) => {
     const squares = missions.map((m) => {
-      const solve = db.prepare('SELECT used_hint FROM solves WHERE team_id = ? AND mission_id = ?').get(t.id, m.id);
-      if (solve) return solve.used_hint ? 'hint' : 'solved';
+      const solve = db.prepare('SELECT 1 FROM solves WHERE team_id = ? AND mission_id = ?').get(t.id, m.id);
+      if (solve) return 'solved';
       const tries = db.prepare('SELECT COUNT(*) AS n FROM attempts WHERE team_id = ? AND mission_id = ? AND correct = 0').get(t.id, m.id).n;
       return tries > 0 ? 'wrong' : 'none';
     });
@@ -302,7 +252,7 @@ app.get('/api/board', (req, res) => {
   });
 
   const radio = db.prepare(`
-    SELECT s.solved_at AS at, s.is_first AS first, s.points AS points, s.used_hint AS usedHint,
+    SELECT s.solved_at AS at, s.is_first AS first, s.points AS points,
            t.name AS team, t.color AS color, m.title AS mission
     FROM solves s JOIN teams t ON t.id = s.team_id JOIN missions m ON m.id = s.mission_id
     ORDER BY s.solved_at DESC LIMIT 12`).all();
@@ -322,7 +272,7 @@ app.post('/api/host/login', (req, res) => {
 
 app.get('/api/host/overview', requireAdmin, (req, res) => {
   const missions = db.prepare('SELECT * FROM missions ORDER BY ord, id').all();
-  const plannedMinutes = missions.filter(missionIsLive).reduce((s, m) => s + (m.minutes || 0), 0);
+  const plannedMinutes = missions.filter((m) => m.published).reduce((s, m) => s + (m.minutes || 0), 0);
   res.json({
     clock: clockState(), plannedMinutes, targetMinutes: 60,
     missions: missions.map((m) => ({ ...m, live: missionIsLive(m), answerCount: parseAnswerKeys(m.answers).length })),
@@ -347,8 +297,7 @@ app.post('/api/host/clock', requireAdmin, (req, res) => {
     case 'end':
       setSetting('race_state', 'ended'); setSetting('race_end_ts', String(now)); break;
     case 'reset':
-      db.exec('DELETE FROM solves; DELETE FROM attempts; DELETE FROM hints; DELETE FROM bonuses;');
-      db.prepare('UPDATE teams SET hint_tokens = ?').run(HINT_TOKENS_DEFAULT);
+      db.exec('DELETE FROM solves; DELETE FROM attempts;');
       setSetting('race_state', 'idle'); setSetting('race_start_ts', ''); setSetting('race_end_ts', ''); break;
     default:
       return res.status(400).json({ error: 'Unknown action.' });
@@ -372,11 +321,20 @@ function missionFromBody(b) {
 app.post('/api/host/missions', requireAdmin, (req, res) => {
   const m = missionFromBody(req.body || {});
   const maxOrd = db.prepare('SELECT COALESCE(MAX(ord),0) AS o FROM missions').get().o;
-  const info = db.prepare(`INSERT INTO missions (ord, title, area, difficulty, points, minutes, tour, scenario, task, question, hint, answers, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+  const info = db.prepare(`INSERT INTO missions (ord, title, area, difficulty, points, minutes, tour, scenario, task, question, hint, answers, published, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)`)
     .run(maxOrd + 1, m.title, m.area, m.difficulty, m.points, m.minutes, m.tour, m.scenario, m.task, m.question, m.hint, m.answers, Date.now());
   broadcast('update', { reason: 'missions' });
   res.json({ ok: true, id: info.lastInsertRowid });
+});
+
+app.post('/api/host/missions/:id/publish', requireAdmin, (req, res) => {
+  const mission = db.prepare('SELECT * FROM missions WHERE id = ?').get(req.params.id);
+  if (!mission) return res.status(404).json({ error: 'Not found.' });
+  const publish = (req.body && req.body.publish) ? 1 : 0;
+  db.prepare('UPDATE missions SET published = ? WHERE id = ?').run(publish, req.params.id);
+  broadcast('update', { reason: 'missions' });
+  res.json({ ok: true, published: publish === 1 });
 });
 
 app.put('/api/host/missions/:id', requireAdmin, (req, res) => {
@@ -407,18 +365,18 @@ app.post('/api/host/teams', requireAdmin, (req, res) => {
   const name = ((req.body && req.body.name) || '').trim() || 'New Team';
   const code = genCode();
   const color = nextColor();
-  const info = db.prepare('INSERT INTO teams (name, code, color, hint_tokens, created_at) VALUES (?, ?, ?, ?, ?)')
-    .run(name, code, color, HINT_TOKENS_DEFAULT, Date.now());
+  const info = db.prepare('INSERT INTO teams (name, code, color, created_at) VALUES (?, ?, ?, ?)')
+    .run(name, code, color, Date.now());
   broadcast('update', { reason: 'teams' });
   res.json({ ok: true, id: info.lastInsertRowid, code, color });
 });
 
 app.put('/api/host/teams/:id', requireAdmin, (req, res) => {
-  const { name, color, hintTokens } = req.body || {};
+  const { name, color } = req.body || {};
   const t = db.prepare('SELECT * FROM teams WHERE id = ?').get(req.params.id);
   if (!t) return res.status(404).json({ error: 'Not found.' });
-  db.prepare('UPDATE teams SET name = ?, color = ?, hint_tokens = ? WHERE id = ?')
-    .run((name || t.name).trim(), color || t.color, Number.isInteger(hintTokens) ? hintTokens : t.hint_tokens, req.params.id);
+  db.prepare('UPDATE teams SET name = ?, color = ? WHERE id = ?')
+    .run((name || t.name).trim(), color || t.color, req.params.id);
   broadcast('update', { reason: 'teams' });
   res.json({ ok: true });
 });
@@ -426,22 +384,6 @@ app.put('/api/host/teams/:id', requireAdmin, (req, res) => {
 app.delete('/api/host/teams/:id', requireAdmin, (req, res) => {
   db.prepare('DELETE FROM teams WHERE id = ?').run(req.params.id);
   broadcast('update', { reason: 'teams' });
-  res.json({ ok: true });
-});
-
-app.get('/api/host/hints', requireAdmin, (req, res) => {
-  const teams = db.prepare('SELECT id, name, color FROM teams ORDER BY id').all();
-  const missions = db.prepare('SELECT * FROM missions ORDER BY ord, id').all().filter(missionIsLive).map((m) => ({ id: m.id, title: m.title }));
-  const cells = db.prepare('SELECT team_id, mission_id, requested, unlocked FROM hints').all();
-  res.json({ teams, missions, cells });
-});
-
-app.post('/api/host/hint/unlock', requireAdmin, (req, res) => {
-  const { teamId, missionId, lock } = req.body || {};
-  db.prepare(`INSERT INTO hints (team_id, mission_id, requested, unlocked, requested_at) VALUES (?, ?, 1, ?, ?)
-              ON CONFLICT(team_id, mission_id) DO UPDATE SET unlocked = excluded.unlocked`)
-    .run(teamId, missionId, lock ? 0 : 1, Date.now());
-  broadcast('update', { reason: 'hint-unlock' });
   res.json({ ok: true });
 });
 
@@ -467,7 +409,7 @@ app.post('/api/host/manual', requireAdmin, (req, res) => {
   }
   const result = awardSolve(team, mission, now);
   broadcast('update', { reason: 'solve', teamName: team.name, missionTitle: mission.title, firstSolve: result.firstSolve });
-  res.json({ correct: true, points: result.points, firstSolve: result.firstSolve, firstAll: result.firstAll });
+  res.json({ correct: true, points: result.points, firstSolve: result.firstSolve });
 });
 
 // ---------------------------------------------------------------- page routes

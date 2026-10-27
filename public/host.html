@@ -55,7 +55,7 @@
             <h2 style="font-family:var(--disp);font-size:24px;margin:0;">🗺 Stages</h2>
             <button class="btn sm" id="addMission">+ Add stage</button>
           </div>
-          <p class="muted" style="margin:6px 0 10px;">Stages without accepted answers are <strong>drafts</strong> (hidden from teams).</p>
+          <p class="muted" style="margin:6px 0 10px;">Teams only see <strong>published</strong> stages. New stages start hidden — click <strong>Publish</strong> to release one. Add an answer before publishing so teams can score.</p>
           <table id="missionTable"><tbody></tbody></table>
         </div>
 
@@ -67,13 +67,6 @@
           </div>
           <table id="teamTable"><tbody></tbody></table>
         </div>
-      </div>
-
-      <!-- HINTS -->
-      <div class="card">
-        <h2 style="font-family:var(--disp);font-size:24px;margin:0 0 6px;">💡 Hints grid</h2>
-        <p class="muted" style="margin:0 0 10px;">Amber = hint requested. Click a cell to unlock (green) or re-lock.</p>
-        <div style="overflow:auto;"><table id="hintGrid"></table></div>
       </div>
 
       <!-- MANUAL -->
@@ -97,7 +90,7 @@
       <div class="host-grid">
         <div><label class="fld">Title</label><input type="text" id="f_title" /></div>
         <div><label class="fld">Area</label>
-          <select id="f_area"><option>Finance</option><option>Order Management</option><option>Sourcing &amp; Purchasing</option><option>Supply Chain</option></select>
+          <select id="f_area"><option>Sales</option><option>Finance</option><option>Order Management</option><option>Sourcing &amp; Purchasing</option><option>Supply Chain</option></select>
         </div>
       </div>
       <div class="host-grid">
@@ -112,7 +105,6 @@
       <label class="fld">Scenario</label><textarea id="f_scenario"></textarea>
       <label class="fld">Task</label><textarea id="f_task"></textarea>
       <label class="fld">Verification question</label><textarea id="f_question"></textarea>
-      <label class="fld">Hint</label><textarea id="f_hint"></textarea>
       <label class="fld">Accepted answers (separate several with | )</label><input type="text" id="f_answers" placeholder="Century Cycles|Century-Cycles" />
       <div class="rowflex" style="justify-content:flex-end;margin-top:16px;">
         <button class="btn danger sm" id="dlgDelete" value="delete" formnovalidate>Delete</button>

@@ -80,6 +80,8 @@ a { color: var(--blue); }
 .chip.Order { color: #8e44ad; border-color: #e2cdf0; background: #f6edfb; }
 .chip.Sourcing { color: #e4572e; border-color: #f6cfc2; background: #fdeee8; }
 .chip.Supply { color: #138d75; border-color: #bfe8df; background: #e8f8f3; }
+.chip.Sales { color: #1e6fd9; border-color: #c3d9f5; background: #eaf2fd; }
+.mtext { white-space: pre-line; line-height: 1.55; }
 .chip.Easy { background: #e8f8f0; color: var(--green-ink); }
 .chip.Medium { background: #fff4e0; color: #9a6300; }
 .chip.Hard { background: #fdeae4; color: #a5331a; }

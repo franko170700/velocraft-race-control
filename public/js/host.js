@@ -32,7 +32,7 @@ async function api(path, opts = {}) {
 
 // ---- login ----
 function showLogin() { $('#login').classList.remove('hidden'); $('#console').classList.add('hidden'); }
-function showConsole() { $('#login').classList.add('hidden'); $('#console').classList.remove('hidden'); refresh(); refreshHints(); }
+function showConsole() { $('#login').classList.add('hidden'); $('#console').classList.remove('hidden'); refresh(); }
 
 $('#loginBtn').onclick = async () => {
   const val = $('#pw').value;
@@ -47,7 +47,7 @@ $('#setLen').onclick = async () => { await api('/api/host/clock', { method: 'POS
 $('#startBtn').onclick = async () => { await api('/api/host/clock', { method: 'POST', body: JSON.stringify({ action: 'start' }) }); toast('Race started! 🚴'); refresh(); };
 $('#add5Btn').onclick = async () => { await api('/api/host/clock', { method: 'POST', body: JSON.stringify({ action: 'add5' }) }); toast('+5 minutes.'); refresh(); };
 $('#endBtn').onclick = async () => { if (!confirm('End the race now?')) return; await api('/api/host/clock', { method: 'POST', body: JSON.stringify({ action: 'end' }) }); toast('Race ended.'); refresh(); };
-$('#resetBtn').onclick = async () => { if (!confirm('Reset ALL scores and the clock? This clears every solve, attempt and hint.')) return; await api('/api/host/clock', { method: 'POST', body: JSON.stringify({ action: 'reset' }) }); toast('Everything reset.'); refresh(); refreshHints(); };
+$('#resetBtn').onclick = async () => { if (!confirm('Reset ALL scores and the clock? This clears every solve and attempt.')) return; await api('/api/host/clock', { method: 'POST', body: JSON.stringify({ action: 'reset' }) }); toast('Everything reset.'); refresh(); };
 
 function paintClock() {
   const c = state.clock;
@@ -67,12 +67,14 @@ function renderMissions() {
       <td>
         <strong>${esc(m.title)}</strong>
         <div class="muted" style="font-size:12px;">${esc(m.area)} · ${esc(m.difficulty)} · ${m.points} pts · ~${m.minutes}m
-          ${m.live ? '<span class="pill live">LIVE</span>' : '<span class="pill draft">DRAFT</span>'}
+          ${m.published ? '<span class="pill live">PUBLISHED</span>' : '<span class="pill draft">HIDDEN</span>'}
+          ${m.published && m.answerCount === 0 ? '<span class="pill draft">⚠ no answer</span>' : ''}
           · ${m.answerCount} answer${m.answerCount === 1 ? '' : 's'}</div>
       </td>
       <td class="rowflex" style="gap:4px;">
         <button class="btn ghost sm" data-up="${m.id}" ${i === 0 ? 'disabled' : ''}>↑</button>
         <button class="btn ghost sm" data-down="${m.id}" ${i === state.missions.length - 1 ? 'disabled' : ''}>↓</button>
+        <button class="btn ${m.published ? 'ghost' : ''} sm" data-pub="${m.id}">${m.published ? 'Hide' : 'Publish'}</button>
         <button class="btn sm" data-edit="${m.id}">Edit</button>
       </td>
     </tr>`).join('') || '<tr><td class="muted">No stages yet. Add one.</td></tr>';
@@ -81,6 +83,12 @@ function renderMissions() {
     const e = $(`[data-edit="${m.id}"]`); if (e) e.onclick = () => openMission(m);
     const u = $(`[data-up="${m.id}"]`); if (u) u.onclick = () => move(m.id, -1);
     const d = $(`[data-down="${m.id}"]`); if (d) d.onclick = () => move(m.id, +1);
+    const pub = $(`[data-pub="${m.id}"]`);
+    if (pub) pub.onclick = async () => {
+      if (!m.published && m.answerCount === 0 && !confirm('This stage has no accepted answer yet, so teams won’t be able to score it. Publish anyway?')) return;
+      await api('/api/host/missions/' + m.id + '/publish', { method: 'POST', body: JSON.stringify({ publish: !m.published }) });
+      toast(m.published ? 'Stage hidden.' : 'Stage published.'); refresh();
+    };
   });
 }
 
@@ -107,7 +115,6 @@ function openMission(m) {
   $('#f_scenario').value = m ? (m.scenario || '') : '';
   $('#f_task').value = m ? (m.task || '') : '';
   $('#f_question').value = m ? (m.question || '') : '';
-  $('#f_hint').value = m ? (m.hint || '') : '';
   $('#f_answers').value = m ? (m.answers || '') : '';
   $('#dlgDelete').style.display = m ? '' : 'none';
   dlg.showModal();
@@ -125,7 +132,7 @@ dlg.addEventListener('close', async () => {
     title: $('#f_title').value.trim(), area: $('#f_area').value, difficulty: $('#f_difficulty').value,
     points: +$('#f_points').value || 0, minutes: +$('#f_minutes').value || 0, tour: $('#f_tour').value.trim(),
     scenario: $('#f_scenario').value.trim(), task: $('#f_task').value.trim(), question: $('#f_question').value.trim(),
-    hint: $('#f_hint').value.trim(), answers: $('#f_answers').value.trim(),
+    answers: $('#f_answers').value.trim(),
   };
   if (!body.title) return toast('Title is required.');
   if (editingId) await api('/api/host/missions/' + editingId, { method: 'PUT', body: JSON.stringify(body) });
@@ -141,7 +148,6 @@ function renderTeams() {
       <td><input class="cellinp" data-name="${t.id}" value="${esc(t.name)}" /></td>
       <td><span class="codebox">${esc(t.code)}</span></td>
       <td><input type="color" class="cellinp" data-color="${t.id}" value="${esc(t.color)}" style="width:44px;padding:2px;" /></td>
-      <td><input type="number" class="cellinp" data-tokens="${t.id}" value="${t.hintTokens}" min="0" style="width:56px;" /></td>
       <td class="rowflex" style="gap:4px;">
         <button class="btn ghost sm" data-save="${t.id}">Save</button>
         <button class="btn danger sm" data-del="${t.id}">✕</button>
@@ -153,13 +159,12 @@ function renderTeams() {
       await api('/api/host/teams/' + t.id, { method: 'PUT', body: JSON.stringify({
         name: $(`[data-name="${t.id}"]`).value.trim(),
         color: $(`[data-color="${t.id}"]`).value,
-        hintTokens: +$(`[data-tokens="${t.id}"]`).value || 0,
       }) });
       toast('Team saved.'); refresh();
     };
     $(`[data-del="${t.id}"]`).onclick = async () => {
       if (!confirm('Delete team "' + t.name + '"? Their solves are removed too.')) return;
-      await api('/api/host/teams/' + t.id, { method: 'DELETE' }); toast('Team deleted.'); refresh(); refreshHints();
+      await api('/api/host/teams/' + t.id, { method: 'DELETE' }); toast('Team deleted.'); refresh();
     };
   });
 }
@@ -167,32 +172,8 @@ function renderTeams() {
 $('#addTeam').onclick = async () => {
   const name = prompt('New team name?'); if (!name) return;
   const data = await api('/api/host/teams', { method: 'POST', body: JSON.stringify({ name: name.trim() }) });
-  toast(`Team added — code ${data.team ? data.team.code : ''}.`); refresh(); refreshHints();
+  toast(`Team added — code ${data.code || ''}.`); refresh();
 };
-
-// ---- hints grid ----
-async function refreshHints() {
-  let h; try { h = await api('/api/host/hints'); } catch { return; }
-  const head = '<tr><th>Team \\ Stage</th>' + h.missions.map((m) => `<th title="${esc(m.title)}">${esc((m.title || '').slice(0, 14))}</th>`).join('') + '</tr>';
-  const rows = h.teams.map((t) => {
-    const cells = h.missions.map((m) => {
-      const c = (h.cells || []).find((x) => x.teamId === t.id && x.missionId === m.id) || {};
-      const cls = c.unlocked ? 'unlocked' : c.requested ? 'requested' : '';
-      const label = c.unlocked ? '🔓 unlocked' : c.requested ? '💡 requested' : '·';
-      return `<td class="grid-cell ${cls}" data-t="${t.id}" data-m="${m.id}" data-unlocked="${c.unlocked ? 1 : 0}">${label}</td>`;
-    }).join('');
-    return `<tr><th style="text-align:left;"><span class="team-dot" style="background:${esc(t.color)}"></span>${esc(t.name)}</th>${cells}</tr>`;
-  }).join('');
-  $('#hintGrid').innerHTML = head + rows;
-
-  $('#hintGrid').querySelectorAll('.grid-cell').forEach((cell) => {
-    cell.onclick = async () => {
-      const lock = cell.dataset.unlocked === '1';
-      await api('/api/host/hint/unlock', { method: 'POST', body: JSON.stringify({ teamId: +cell.dataset.t, missionId: +cell.dataset.m, lock }) });
-      toast(lock ? 'Hint re-locked.' : 'Hint unlocked.'); refreshHints();
-    };
-  });
-}
 
 // ---- manual entry ----
 function renderManualPickers() {
@@ -217,7 +198,7 @@ async function refresh() {
 
 // ---- live ----
 const es = new EventSource('/api/events');
-es.addEventListener('update', () => { if (pw) { refresh(); refreshHints(); } });
+es.addEventListener('update', () => { if (pw) { refresh(); } });
 es.addEventListener('tick', (e) => { if (state) { state.clock = JSON.parse(e.data); paintClock(); } });
 
 // ---- boot ----
