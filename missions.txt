@@ -1,0 +1,130 @@
+========== MISSION 1 ==========
+ 
+TITLE: Is the Indoor Bet Paying Off?
+AREA: Sales
+DIFFICULTY: Easy
+POINTS: 5
+EST. MINUTES: 12
+GUIDED TOUR NAME: Sales Volume (Detailed Analysis)
+ 
+SCENARIO:
+Lena Hoffmann storms into your office with two coffees and hands you one. The Grand Tour organisers want a partner that is growing. Last year, VeloCraft took a big bet: an indoor Exercise Bike line for training days when riders can't get out on the road. Half the board thinks it's the future. The other half wants to kill it and stick to classic road and mountain bikes. Before Friday, Max needs proof: are the Exercise Bikes a real business, or an expensive hobby?
+ 
+TASK:
+Find out how much the Exercise Bikes have sold compared with the classic product groups like Racing, E-Bikes and Youth bikes.
+1. Go to the Sales tab
+2. Click on the Sales Volume tile (Detailed Analysis)
+3. Ensure the Display Currency is USD
+4. Click on + (bottom left) to add a new analysis step
+5. Choose Sales Volume by Product Group
+6. The bar chart now shows the sales volume (USD) for each product group. Note: not every bar has a label on the axis.
+7. Hover your mouse over each bar to see the product group name, its ID and the exact sales volume. Find the Exercise Bikes bar.
+ 
+VERIFICATION QUESTION:
+What is the product group ID of the Exercise Bikes and how much sales volume (USD) did they generate?
+ 
+HINT:
+Step 7 of the guide; the bar sits directly below Youth. SAP NAVIGATION: Sales tab → Sales Volume → + → Sales Volume by Product Group → hover over the bars
+ 
+ACCEPTED ANSWERS:
+ZEXBK | 500,800,490.08 | 500800490.08 | 500,800,490.08 USD
+ 
+ 
+========== MISSION 2 ==========
+ 
+TITLE: Where Are Our Bikes?
+AREA: Order Management
+DIFFICULTY: Medium
+POINTS: 10
+EST. MINUTES: 15
+GUIDED TOUR NAME: Sales Order Fulfillment (Analyze and Resolve Issues)
+ 
+SCENARIO:
+Success has a downside. Thanks to the Grand Tour buzz, orders are flooding in, and some of them are stuck. Bikes that were promised for next week haven't left the warehouse. Customer service is drowning in angry calls. If the wrong customer cancels this week, it lands in front of the investors and the race organisers on Friday. Lena wants to call the most important one personally, before they walk away.
+ 
+TASK:
+Find out which orders are stuck in delivery and which customer is at risk of the biggest loss.
+1. Go to the Sales tab
+2. Click on the Sales Order Fulfillment tile (Analyze and Resolve Issues)
+3. In the chart Issues Total by Issue Category, click on In Delivery
+4. In the chart Issues Total by Sales Organization, click on Dom. Sales Org
+5. Scroll the charts to the right with the arrow. In Issues Total by Week of Requested Delivery, click on CW 48
+6. Click on Go
+7. Scroll down to Sales Documents with Issues. The table lists every stuck order with its sold-to party (customer), net value, requested delivery date and the issue.
+ 
+VERIFICATION QUESTION:
+Which customer has the stuck order with the highest net value in CW 48? Enter the customer name or customer ID.
+ 
+HINT:
+Step 7 of the guide; look at the Net Value column. SAP NAVIGATION: Sales tab → Sales Order Fulfillment → In Delivery → Dom. Sales Org → CW 48 → Go → Sales Documents with Issues
+ 
+ACCEPTED ANSWERS:
+Westend Cycles | USCU_S07 | Westend Cycles (USCU_S07)
+ 
+ 
+========== MISSION 3 ==========
+ 
+TITLE: Never Late Again
+AREA: Sourcing & Purchasing
+DIFFICULTY: Hard
+POINTS: 15
+EST. MINUTES: 18
+GUIDED TOUR NAME: Manage Purchase Orders | Add Items from Contract | ML Delivery Prediction
+ 
+SCENARIO:
+Jonas Becker has had enough. Last quarter a critical supplier delivered 200 bike frames 3 weeks late, and the EX-800 e-bike launch had to be postponed. Now the same problem threatens the bikes VeloCraft has promised for the Grand Tour. His new rule, effective immediately: ALL new purchase orders must include a SAP-predicted delivery date before they can be approved. No exceptions. And before VeloCraft orders the frames for the Grand Tour bikes, he wants to check one supplier in particular.
+ 
+TASK:
+Follow the guide to create a PO and predict its delivery date. Then use the system to answer the challenge about a specific supplier.
+1. Click the Other tab in the Fiori launchpad. Choose Manage Purchase Orders.
+2. Click Create to start a new Purchase Order.
+3. In the Supplier field, enter the supplier code: USSU-VSF01.
+4. In the Items area, click Add from Document.
+5. Set the Purchasing Document Type to Purchase Contract, then click Go.
+6. Select the contract from the results. Click Add Items.
+7. For the new PO item, enter Order Quantity: 1 PC. Click Order to confirm.
+8. Note your PO number (45000#####). Click the SAP logo to return to the Home page.
+9. Open the Monitor Purchase Order Items tile. Enter your PO number in the Search field. Set currency to USD. Click Go.
+10. In the table, your Predicted Delivery Date shows 'Not Predicted'. Select your PO row (checkmark). Click Predict Delivery Date.
+ 
+VERIFICATION QUESTION:
+For supplier 'Steel & Moore Inc.' — what is the Delivery Status for the Y300 T Bike material? (Use Purchase Order as the Purchasing Document Type when clicking 'Add from Document')
+ 
+HINT:
+Follow steps 1-6 of the guide BUT: in Step 5, use 'Purchase Order' (not Purchase Contract) as the Purchasing Document Type, and search for Steel & Moore Inc. as the supplier. SAP NAVIGATION: Other tab → Manage Purchase Orders → Create → Supplier: Steel & Moore Inc. → Add from Document → Purchase Order (type) → Go → Select Y300 T Bike material → Monitor PO Items → Predict Delivery Date
+ 
+ACCEPTED ANSWERS:
+On-time | On time | Ontime
+ 
+ 
+========== MISSION 4 ==========
+ 
+TITLE: Stop Leaving Money on the Table
+AREA: Finance
+DIFFICULTY: Medium
+POINTS: 10
+EST. MINUTES: 15
+GUIDED TOUR NAME: Accounts Payable Overview | Cash Discount Analysis | Payables Aging Report
+ 
+SCENARIO:
+Building bikes for the Grand Tour means big supplier invoices, and Anna Müller needs every euro. VeloCraft pays tens of thousands of euros in supplier invoices every month. Many suppliers offer early-payment discounts, but the AP team has been missing them. One supplier in particular stands out: their offered discounts are the lowest in the portfolio, suggesting something isn't right. Anna wants to walk into Friday's meeting with a savings plan that proves VeloCraft's finances are race-ready.
+ 
+TASK:
+Use the SAP Accounts Payable analytics tool to investigate. Follow the guide — then answer the challenge to identify the underperforming supplier. (Company code: 1710 | Currency: USD)
+1. Go to the Finance tab in the Fiori launchpad.
+2. Navigate to Accounts Payable → Account Payable Overview.
+3. Ensure the display currency is set to USD. Enter company code 1710.
+4. Click on Cash Discount Utilization. Filter the results by Supplier.
+5. Click the Settings tab to add additional Measures. Add: Lost Cash Discounts, Offered Discounts, and Taken Cash Discounts (in addition to Cash Discounts Utilization Ratio).
+6. Click the SAP logo to open Cash Discount Forecast. This app shows the KPI Cash Discount Forecast — compare expired vs. available cash discounts in the short term.
+7. In the Cash Discount Forecast app, change the currency to USD and filter by Supplier.
+8. Click the SAP logo to return to Accounts Payable View. Click Payable Aging. Filter the aging chart by Supplier (Top 10 Payables) to identify the biggest liabilities.
+ 
+VERIFICATION QUESTION:
+Which supplier had the LOWEST Offered Cash Discounts?
+ 
+HINT:
+Go back to Step 5 of the guide. Open Cash Discount Utilization, add the 'Offered Discounts' measure, and filter by Supplier to compare the values. SAP NAVIGATION: Finance tab → Accounts Payable Overview → Cash Discount Utilization → Settings (add Offered Discounts) → Filter by Supplier
+ 
+ACCEPTED ANSWERS:
+WaveCrest Labs | WaveCrest | Wavecrest Labs

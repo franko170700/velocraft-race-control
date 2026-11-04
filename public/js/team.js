@@ -70,7 +70,7 @@ function render(view) {
   paintClock();
 
   $('#missions').innerHTML = view.missions.map((m, i) => missionCard(m, i + 1)).join('') ||
-    '<div class="card muted">No stages released yet — the facilitator will publish them as the race goes on.</div>';
+    '<div class="card muted">Waiting for the race to start…</div>';
 
   view.missions.forEach((m) => wireCard(m));
 }

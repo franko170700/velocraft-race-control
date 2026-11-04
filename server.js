@@ -71,7 +71,6 @@ function raceRunning() { maybeAutoEnd(); return getSetting('race_state', 'idle')
 // ---------------------------------------------------------------- scoring
 const liveMissionsStmt = db.prepare('SELECT * FROM missions ORDER BY ord, id');
 function liveMissions() { return liveMissionsStmt.all().filter(missionIsLive); }
-function publishedMissions() { return liveMissionsStmt.all().filter((m) => m.published); }
 
 function teamScore(teamId) {
   const agg = db
@@ -157,7 +156,7 @@ app.get('/api/state', (req, res) => {
   maybeAutoEnd();
   res.json({
     clock: clockState(),
-    missions: publishedMissions().map(publicMission),
+    missions: [],
     teams: db.prepare('SELECT id, name, color FROM teams ORDER BY name').all(),
   });
 });
@@ -174,7 +173,16 @@ app.get('/api/team/:id/view', (req, res) => {
   if (!team) return res.status(401).json({ error: 'Wrong team code.' });
   maybeAutoEnd();
 
-  const missions = publishedMissions();
+  const allOrdered = liveMissionsStmt.all();
+  const unlockedMissions = [];
+  if (raceStarted()) {
+    for (const m of allOrdered) {
+      unlockedMissions.push(m);
+      const isSolved = db.prepare('SELECT 1 FROM solves WHERE team_id = ? AND mission_id = ?').get(team.id, m.id);
+      if (!isSolved) break;
+    }
+  }
+  const missions = unlockedMissions;
   const score = teamScore(team.id);
   const all = standings();
   const myStanding = all.find((s) => s.id === team.id);
@@ -209,8 +217,15 @@ app.post('/api/submit', (req, res) => {
   lastSubmit.set(team.id, now);
 
   const mission = db.prepare('SELECT * FROM missions WHERE id = ?').get(missionId);
-  if (!mission || !mission.published) return res.status(404).json({ error: 'Mission not found.' });
+  if (!mission) return res.status(404).json({ error: 'Mission not found.' });
   if (!raceStarted()) return res.status(403).json({ error: 'The race has not started yet.' });
+
+  const orderedAll = liveMissionsStmt.all();
+  const mIdx = orderedAll.findIndex((m) => m.id === mission.id);
+  if (mIdx > 0) {
+    const prevSolved = db.prepare('SELECT 1 FROM solves WHERE team_id = ? AND mission_id = ?').get(team.id, orderedAll[mIdx - 1].id);
+    if (!prevSolved) return res.status(403).json({ error: 'Complete the previous stage first.' });
+  }
 
   if (db.prepare('SELECT 1 FROM solves WHERE team_id = ? AND mission_id = ?').get(team.id, mission.id)) {
     return res.status(409).json({ error: 'You already solved this stage.' });
@@ -240,7 +255,7 @@ app.post('/api/submit', (req, res) => {
 // ================================================================ BOARD API
 app.get('/api/board', (req, res) => {
   maybeAutoEnd();
-  const missions = publishedMissions();
+  const missions = liveMissionsStmt.all();
   const rows = standings().map((t) => {
     const squares = missions.map((m) => {
       const solve = db.prepare('SELECT 1 FROM solves WHERE team_id = ? AND mission_id = ?').get(t.id, m.id);
@@ -272,7 +287,7 @@ app.post('/api/host/login', (req, res) => {
 
 app.get('/api/host/overview', requireAdmin, (req, res) => {
   const missions = db.prepare('SELECT * FROM missions ORDER BY ord, id').all();
-  const plannedMinutes = missions.filter((m) => m.published).reduce((s, m) => s + (m.minutes || 0), 0);
+  const plannedMinutes = missions.reduce((s, m) => s + (m.minutes || 0), 0);
   res.json({
     clock: clockState(), plannedMinutes, targetMinutes: 60,
     missions: missions.map((m) => ({ ...m, live: missionIsLive(m), answerCount: parseAnswerKeys(m.answers).length })),

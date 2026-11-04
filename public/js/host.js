@@ -67,14 +67,12 @@ function renderMissions() {
       <td>
         <strong>${esc(m.title)}</strong>
         <div class="muted" style="font-size:12px;">${esc(m.area)} · ${esc(m.difficulty)} · ${m.points} pts · ~${m.minutes}m
-          ${m.published ? '<span class="pill live">PUBLISHED</span>' : '<span class="pill draft">HIDDEN</span>'}
-          ${m.published && m.answerCount === 0 ? '<span class="pill draft">⚠ no answer</span>' : ''}
+          ${m.answerCount === 0 ? '<span class="pill draft">⚠ no answer</span>' : ''}
           · ${m.answerCount} answer${m.answerCount === 1 ? '' : 's'}</div>
       </td>
       <td class="rowflex" style="gap:4px;">
         <button class="btn ghost sm" data-up="${m.id}" ${i === 0 ? 'disabled' : ''}>↑</button>
         <button class="btn ghost sm" data-down="${m.id}" ${i === state.missions.length - 1 ? 'disabled' : ''}>↓</button>
-        <button class="btn ${m.published ? 'ghost' : ''} sm" data-pub="${m.id}">${m.published ? 'Hide' : 'Publish'}</button>
         <button class="btn sm" data-edit="${m.id}">Edit</button>
       </td>
     </tr>`).join('') || '<tr><td class="muted">No stages yet. Add one.</td></tr>';
@@ -83,12 +81,6 @@ function renderMissions() {
     const e = $(`[data-edit="${m.id}"]`); if (e) e.onclick = () => openMission(m);
     const u = $(`[data-up="${m.id}"]`); if (u) u.onclick = () => move(m.id, -1);
     const d = $(`[data-down="${m.id}"]`); if (d) d.onclick = () => move(m.id, +1);
-    const pub = $(`[data-pub="${m.id}"]`);
-    if (pub) pub.onclick = async () => {
-      if (!m.published && m.answerCount === 0 && !confirm('This stage has no accepted answer yet, so teams won’t be able to score it. Publish anyway?')) return;
-      await api('/api/host/missions/' + m.id + '/publish', { method: 'POST', body: JSON.stringify({ publish: !m.published }) });
-      toast(m.published ? 'Stage hidden.' : 'Stage published.'); refresh();
-    };
   });
 }
 
