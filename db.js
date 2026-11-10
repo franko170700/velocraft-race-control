@@ -133,44 +133,44 @@ function seed() {
       area: 'Sales',
       difficulty: 'Easy',
       points: 5,
-      minutes: 12,
-      tour: 'Sales Volume (Detailed Analysis)',
+      minutes: 5,
+      tour: 'Mission 1',
       scenario:
-        "VeloCraft bet big on a new indoor Exercise Bike line. Half the board calls it the future; the other half wants it gone. Before Friday, prove whether the Exercise Bikes are a real business — by comparing their sales against the classic groups (Racing, E-Bikes, Youth).",
+        "Lena Hoffmann storms into your office with two coffees and hands you one. The Grand Tour organisers want a partner that is growing. Last year, VeloCraft took a big bet: an indoor Exercise Bike line for training days when riders can't get out on the road.\n\nHalf the board thinks it's the future. The other half wants to kill it and stick to classic road and mountain bikes. Before Friday, Max needs proof: are the Exercise Bikes a real business, or an expensive hobby?\n\nLena, on her way out: \"Tip: don't stare at the grand total. Break the sales down by product group and look closely: not every bar has a label.\"",
       task:
-        "1. Sales tab → open the Sales Volume tile (Detailed Analysis).\n2. Set Display Currency to USD.\n3. Click + (bottom-left) to add an analysis step.\n4. Choose 'Sales Volume by Product Group'.\n5. Hover each bar to read its name, ID and USD volume — find the Exercise Bikes bar (just below Youth).",
-      question: 'What is the Exercise Bikes product group ID, and how much sales volume (USD) did it generate?',
-      answers: 'ZEXBK | 500,800,490.08 | 500800490.08 | 500,800,490.08 USD',
+        "1. Search for the Sales Volume tile\n2. Add a new analysis step\n3. Break the sales volume down by product group\n4. Visualize it in a way that lets you read the sales volume of each product group",
+      question: "What is the sales volume of the 'Exercise Bike' product group? (Round to the nearest million, e.g. 126 million or 126 M)",
+      answers: '501 Million | 501m | 501M | 501 Million USD | 501 million USD | 501',
       published: 1,
     },
     {
       title: 'Where Are Our Bikes?',
       area: 'Order Management',
-      difficulty: 'Medium',
-      points: 10,
-      minutes: 15,
-      tour: 'Sales Order Fulfillment (Analyze and Resolve Issues)',
+      difficulty: 'Easy',
+      points: 5,
+      minutes: 5,
+      tour: 'Mission 2',
       scenario:
-        "Grand Tour buzz means orders are flooding in — and some are stuck in delivery. Customer service is swamped, and the wrong cancellation could blow up in Friday's investor meeting. Lena wants to call the most important at-risk customer personally, before they walk.",
+        "Success has a downside. Thanks to the Grand Tour buzz, orders are flooding in, and some of them are stuck. Bikes that were promised for next week haven't left the warehouse.\n\nCustomer service is drowning in angry calls. If the wrong customer cancels this week, it lands in front of the investors and the race organisers on Friday. Lena wants to call the most important one personally, before they walk away.\n\nLena, picking up the phone: \"Tip: the fulfillment app shows where every order is stuck. Check the delivery issues for week 48. CostClub is the one I need.\"",
       task:
-        "1. Sales tab → open Sales Order Fulfillment (Analyze and Resolve Issues).\n2. In 'Issues Total by Issue Category', click In Delivery.\n3. In 'Issues Total by Sales Organization', click Dom. Sales Org.\n4. Scroll right; in 'Issues by Week of Requested Delivery', click CW 48, then Go.\n5. Scroll to 'Sales Documents with Issues' and check the Net Value column.",
-      question: 'Which customer has the stuck CW 48 order with the highest net value? Enter the customer name or ID.',
-      answers: 'Westend Cycles | USCU_S07 | Westend Cycles (USCU_S07)',
+        "1. Open Sales Order Fulfillment to find where the process is stuck.\n2. Narrow the issues down to orders stuck in delivery\n3. Focus on the domestic sales organisation and requested delivery week CW 48\n4. Find CostClub in the list of sales documents with issues",
+      question: "CostClub has a sales order (valued at $1220) with fulfillment issues in CW 48. What is its sales document number?",
+      answers: '323496',
       published: 0,
     },
     {
       title: 'Never Late Again',
-      area: 'Sourcing & Purchasing',
-      difficulty: 'Hard',
-      points: 15,
-      minutes: 18,
-      tour: 'Manage Purchase Orders · Add from Document · ML Delivery Prediction',
+      area: 'Sourcing & Procurement',
+      difficulty: 'Medium',
+      points: 10,
+      minutes: 5,
+      tour: 'Mission 3',
       scenario:
-        "A late supplier once delayed the EX-800 launch by three weeks, and Jonas won't risk the Grand Tour frames. New rule: every PO needs a SAP-predicted delivery date before approval. Build a PO and predict its date — then check one supplier in particular.",
+        "Jonas Becker has had enough. Last quarter a critical supplier delivered 200 bike frames 3 weeks late, and the EX-800 e-bike launch had to be postponed. Now the same problem threatens the bikes VeloCraft has promised for the Grand Tour.\n\nHis new rule, effective immediately: ALL new purchase orders must include a SAP-predicted delivery date before they can be approved. No exceptions. And before VeloCraft orders the frames for the Grand Tour bikes, he wants to check one supplier in particular.\n\nJonas, already at the door: \"Tip: we already have a contract with this supplier, so build the order from it. And write down your PO number: you'll need it to track the order.\"",
       task:
-        "1. Other tab → Manage Purchase Orders → Create.\n2. Supplier: USSU-VSF01.\n3. Items → Add from Document; set type Purchase Contract → Go.\n4. Select the contract → Add Items. Order Quantity 1 PC → Order. Note your PO number (45000#####).\n5. Home → Monitor Purchase Order Items. Search your PO, currency USD → Go.\n6. Select your PO row → Predict Delivery Date.\n\nFor the question: repeat steps 1–3 but choose type 'Purchase Order' and supplier 'Steel & Moore Inc.', then find the Y300 T Bike material.",
-      question: "For supplier 'Steel & Moore Inc.', what is the Delivery Status of the Y300 T Bike material?",
-      answers: 'On-time | On time | Ontime',
+        "1. Create a new purchase order for supplier USSU-VSF01\n2. Add the item from the supplier's existing purchase contract and order 1 PC\n3. Copy your PO number before you leave the order\n4. Find your order among the purchase order items to monitor (in USD) and let SAP predict its delivery",
+      question: "Create a purchase order for 1 PC from supplier 'USSU-VSF01' from its existing purchase contract. What delivery status does SAP predict?\n\nCopy your PO number (45000#####): you need it to monitor the order",
+      answers: 'On Time | ontime | OnTime | On-Time | on-time',
       published: 0,
     },
     {
@@ -178,14 +178,28 @@ function seed() {
       area: 'Finance',
       difficulty: 'Medium',
       points: 10,
-      minutes: 15,
-      tour: 'Accounts Payable Overview · Cash Discount Analysis',
+      minutes: 5,
+      tour: 'Mission 4',
       scenario:
-        "Big Grand Tour supplier invoices mean Anna needs every euro. Many suppliers offer early-payment discounts the AP team keeps missing — and one supplier's offered discounts look suspiciously low. Find it, so Anna walks into Friday with a savings plan.",
+        "Building bikes for the Grand Tour means big supplier invoices, and Anna Müller needs every euro. VeloCraft pays tens of thousands of euros in supplier invoices every month. Many suppliers offer early-payment discounts, but the AP team has been missing them.\n\nOne supplier in particular stands out: their offered discounts are the lowest in the portfolio, suggesting something isn't right. Anna wants to walk into Friday's meeting with a savings plan that proves VeloCraft's finances are race-ready.\n\nAnna, over her glasses: \"Tip: start with the big picture of everything we owe our suppliers. And the board wants dollars, so make sure the report is in USD.\"",
       task:
-        "(Company code 1710 · currency USD)\n1. Finance tab → Accounts Payable → Accounts Payable Overview.\n2. Set currency USD and enter company code 1710.\n3. Open Cash Discount Utilization; filter by Supplier.\n4. Settings tab → add the measure 'Offered Discounts' (alongside the ratio).\n5. Compare Offered Discounts across suppliers to spot the lowest.",
-      question: 'Which supplier had the LOWEST Offered Cash Discounts?',
-      answers: 'WaveCrest Labs | WaveCrest | Wavecrest Labs',
+        "1. You want an overview of accounts payable: find the right app\n2. Make sure the report shows USD (company code 1710)\n3. Look at how well cash discounts are being used, per supplier\n4. Add the Offered Discounts measure and compare the suppliers",
+      question: "Which supplier had the lowest Offered Discounts?\n\nShow the report in USD",
+      answers: 'WaveCrest Labs | wavecrest labs | Wavecrest labs | Wavecrest Labs | wavecrest Labs',
+      published: 0,
+    },
+    {
+      title: 'The Final Climb',
+      area: 'Supply Chain',
+      difficulty: 'Hard',
+      points: 15,
+      minutes: 10,
+      tour: '',
+      scenario:
+        "Friday, 6:45 AM. Two hours before the board meeting, Jonas Becker calls. The race organisers' logistics team has flagged the Cruise E-Bike as a slow-moving good in plant 1710. If bikes are gathering dust in the warehouse, the investors will ask why.\n\nJonas needs one number before 9:00: how much Cruise E-Bike stock VeloCraft will still be holding next quarter. No guided tour this time. You've learned the system all week. Now prove it.\n\nJonas, before he hangs up: \"Tip: SAP has an app made for slow movers. Plant 1710, today's date, USD. Then look ahead to next quarter.\"",
+      task: "No Guide for this task :)",
+      question: "The Cruise E-Bike is reported as a slow-moving good in plant 1710 at its warehouse location. What is its stock quantity for the next quarter?\n\nShow the report in USD",
+      answers: '7011 | 7,011 pc | 7,011 PC | 7011 pc | 7011 PC',
       published: 0,
     },
   ];
@@ -213,10 +227,11 @@ function seed() {
     'INSERT INTO teams (name, code, color, hint_tokens, created_at) VALUES (?, ?, ?, 3, ?)'
   );
   const sampleTeams = [
-    ['Peloton', 'PELO', '#f4c430'],
-    ['Breakaway', 'BRK7', '#e4572e'],
-    ['Domestiques', 'DOMS', '#1e88e5'],
-    ['Sprinters', 'SPNT', '#2ecc71'],
+    ['Breakaway',   'BRK-26', '#e4572e'],
+    ['Peloton',     'PEL-26', '#f4c430'],
+    ['Domestiques', 'DOM-26', '#1e88e5'],
+    ['Sprinters',   'SPR-26', '#2ecc71'],
+    ['Climbers',    'CLM-26', '#e53935'],
   ];
   sampleTeams.forEach((t) => insTeam.run(t[0], t[1], t[2], now));
 }

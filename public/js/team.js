@@ -3,7 +3,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const fmtClock = (sec) => { sec = Math.max(0, sec | 0); const m = Math.floor(sec / 60), s = sec % 60; return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; };
-const areaClass = (a) => ({ 'Sales': 'Sales', 'Finance': 'Finance', 'Order Management': 'Order', 'Sourcing & Purchasing': 'Sourcing', 'Supply Chain': 'Supply' }[a] || 'area');
+const areaClass = (a) => ({ 'Sales': 'Sales', 'Finance': 'Finance', 'Order Management': 'Order', 'Sourcing & Purchasing': 'Sourcing', 'Sourcing & Procurement': 'Sourcing', 'Supply Chain': 'Supply' }[a] || 'area');
 
 // ---- theme ----
 const themeBtn = $('#themeBtn');
